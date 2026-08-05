@@ -196,3 +196,26 @@ textarea.notes { resize: vertical; background: #fffbeb; border-color: #fcd34d; }
   text-align: center;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --green: #22c55e;
+    --green-dark: #4ade80;
+    --green-soft: #052e16;
+    --blue: #60a5fa;
+    --red: #f87171;
+    --red-soft: #450a0a;
+    --ink: #f3f4f6;
+    --muted: #9ca3af;
+    --line: #1f2937;
+    --bg: #0b1220;
+    --card: #111827;
+  }
+  input, select, textarea { background: #0b1220; }
+  .btn { background: #1f2937; }
+  .new-route-card { background: #052e16; border-color: #166534; }
+  .new-route-card .card-title { border-color: #166534; }
+  .field.extra textarea.instr { background: #0b1220; }
+  .stop-num { background: #052e16; }
+  textarea.notes { background: #451a03; border-color: #92400e; }
+}
