@@ -72,9 +72,11 @@ body { padding-bottom: calc(28px + var(--safe-bottom)); }
 }
 
 /* new route */
-.new-route { display: flex; gap: 8px; margin-bottom: 14px; }
-.new-route input { flex: 1; min-width: 0; }
+.new-route-card { background: var(--green-soft); border-color: #86efac; }
+.new-route-card .card-title { color: var(--green-dark); border-color: #86efac; }
+.new-route-card .btn.primary { width: 100%; }
 .route-actions { display: flex; flex-direction: column; gap: 8px; }
+.field.extra textarea.instr { background: #f9fafb; font-size: 13px; color: var(--muted); }
 
 /* records / routes list */
 .rec { padding: 12px; }

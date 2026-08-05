@@ -1,58 +1,11 @@
 'use strict';
 
-/* ============================== Template: Maq Route ============================== */
-
-const MAQ_ROUTE_TEMPLATE = [
-  ['OROURKE MOTORS', false, 'Drop tires off by 2nd overhead door on the northside of building.'],
-  ['H AND H AUTO', false, 'Drop tires off by front walk-in door.'],
-  ['COUNTY AUTOMOTIVE SERVICES', false, 'Drop tires off by front middle overhead door. Roll up invoices and put into exhaust port on overhead door.'],
-  ['HERMSEN AUTOMOTIVE', false, 'Drop tires off by eastside 2nd overhead door.'],
-  ['GOODNEWS AUTO LLC', true, 'Drop tires off inside outdoor walking cooler. Check will be in a Pringles can on shelf.'],
-  ['JM AUTO SERVICE & REPAIR LLC', false, 'Drop tires off right of key drop off. See invoice notes.'],
-  ['STEVE FEUSS AUTO', false, 'Drop tires off by garage walk-in door. Place invoices inside grill.'],
-  ['RINIKER AUTO SALES', false, 'Drop tires off by shop doors.'],
-  ['ZIPS REPAIR', true, 'Ron gets in around 7:00-7:15am.'],
-  ['MERFELD AUTO', true, 'Customer gets in around 7:30. Phone: (563) 556-4740'],
-  ['BOUREKS CERTIFIED AUTO SERVICE', false, 'Drop tires off by shop walk-in door when unattended.'],
-  ['PEOSTA AUTOMOTIVE', true, 'Doug and Nick get in around 7:00-7:30.'],
-  ['WILLIS AUTO BODY, LLC', false, 'If unattended, leave product by shop door.'],
-  ['TRISTATE AUTO DIAGNOSTICS', true, 'If before 8:15, check is in outdoor outlet box left of the shop\'s walk-in door.'],
-  ['MAIERS AUTO SERVICE', false, 'Drop tires off between overhead doors in front of key drop off.'],
-  ['BREITBACH GARAGE LC.', true, 'Al and Amy get in around 7:00am. Drop tires off by shop doors.'],
-  ['AVALON SERVICE CENTER INC', false, 'Drop tires off in front of shed/receiving dock. Take invoices to office at the main building.'],
-  ['AVALON BODY SHOP', false, 'Drop tires off inside shop walk-in door. Take invoices to office.'],
-  ['SPOERL AUTOMOTIVE', false, 'If unattended, leave product by shop walk-in door.'],
-  ['BERENDES GARAGE INC.', false, 'If unattended, leave product by shop walk-in door.'],
-  ['TILLS GARAGE', false, 'Drive around into the back alley, drop tires off in front of 2nd outdoor shed. Bring invoices to Steve at the front counter.'],
-  ['ZEIMETS GARAGE INC', false, 'Drop tires in back shed up the driveway hill. Drop invoices off on front office desk.'],
-  ['OLYS GARAGE', true, 'Drop tires off in front of tub by overhead doors. Go in for check.'],
-  ['JESSE\'S AUTOMOTIVE & MINI MART', true, 'Drop tires off inside shop.'],
-  ['LAURITZEN AUTOMOTIVE', false, 'Drop product inside shop.'],
-  ['L AND J AUTO AND STORAGE', false, 'Drop tires inside shop.'],
-  ['HERMES AUTO UPHOLSTERY', false, 'Drop tires inside shop.'],
-  ['K AND B TIRE - MAQUOKETA', false, 'Drop tires outside of shop office.'],
-  ['DOWNEY AUTO REPAIR', true, 'Drop tires inside shop. If Corey isn\'t there, check restroom on side of building facing bar for a check. Otherwise call Corey at (563) 357-4647.'],
-  ['B&H TIRE LLC.', false, 'Drop tires off outside of shop.'],
-  ['BRAD DEERY MOTORS CHRYSLER', false, 'Drive to receiving door, ring bell. DO NOT LEAVE TIRES UNATTENDED.'],
-  ['ROTMAN MOTORS', false, 'Drop tires off inside shop, leave invoices at parts counter.'],
-  ['THEISEN SUPPLY 02 MAQUOKETA', false, 'Drop product inside receiving door located behind store.'],
-  ['BRAD DEERY FORD', false, 'Drop tires off behind parts counter on tire rack.'],
-  ['SMALL TOWN MACHINING', false, 'Drop tires off inside shop. Pam or Ron will have check ready in their office. If no one there, leave unattended, check vehicles for check. See invoice notes for cell phone number if have issues.'],
-  ['ED MORSE CBG NORTHEAST', false, 'Drive to receiving door eastside clear overhead door. Drop tires in front of receiving desk, get handheld signed.'],
-  ['HARRYS FARM SERVICE DEWITT', false, 'Drop off by back walk-in door. Get checked in and have handheld signed.'],
-  ['THEISEN SUPPLY 03 DEWITT', false, 'Drop product inside receiving door facing Dollar General.'],
-  ['HARRYS FARM TIRE WHEATLAND', false, 'Drop tires off inside east outdoor shed. Get checked in and have handheld signed.'],
-  ['MIDWEST AUTO SALES & SERVICE, LLC', false, 'Drop tires off inside back shop.'],
-  ['THRUSTON AUTO', true, 'Call or text Zach (563) 357-6977 when you are on the way.'],
-];
-
 const STORE_KEY = 'usaf_route_notes_v1';
 
 /* ============================== State ============================== */
 
 let routes = loadRoutes();
 let currentRouteId = null;
-let expandedStop = null;
 
 /* ============================== Storage ============================== */
 
@@ -86,10 +39,6 @@ function todayISO() {
   const d = new Date();
   const p = (n) => String(n).padStart(2, '0');
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
-}
-
-function maqRoute() {
-  return newRoute('Maq Route', MAQ_ROUTE_TEMPLATE.map(([n, c, i]) => makeStop(n, c, i)));
 }
 
 function currentRoute() {
@@ -139,30 +88,29 @@ function renderHome() {
   const view = document.getElementById('view');
   view.innerHTML = '';
 
-  const head = el('div', { class: 'page-head' }, [
-    el('h2', { class: 'page-title' }, ['Your Routes (' + routes.length + ')']),
-    el('button', { class: 'btn ghost small', onclick: exportAll }, ['Backup JSON']),
+  const newCard = el('div', { class: 'card new-route-card' }, [
+    el('h2', { class: 'card-title' }, ['Start a New Route']),
+    el('div', { class: 'field' }, [
+      el('span', { class: 'field-label' }, ['Route Name']),
+      el('input', { type: 'text', id: 'newRouteName', placeholder: 'e.g. Tuesday North Run', onkeydown: (e) => { if (e.key === 'Enter') createRoute(); } }),
+    ]),
+    el('button', { class: 'btn primary big', onclick: createRoute }, ['Start Route \u2192']),
   ]);
-  view.appendChild(head);
-
-  const actions = el('div', { class: 'route-actions' });
-  const form = el('div', { class: 'new-route' });
-  const nameInput = el('input', { type: 'text', placeholder: 'Route name (e.g. Tuesday Maq)', id: 'newRouteName' });
-  actions.appendChild(el('button', { class: 'btn primary', onclick: () => createRoute(nameInput.value) }, ['+ New Route']));
-  actions.appendChild(el('button', { class: 'btn ghost', onclick: addMaqTemplate }, ['+ From Maq Template']));
-  form.appendChild(nameInput);
-  form.appendChild(actions);
-  view.appendChild(form);
+  view.appendChild(newCard);
 
   if (!routes.length) {
     view.appendChild(el('div', { class: 'empty' }, [
-      'No routes yet. Tap \u201C+ From Maq Template\u201D to load your 41-stop Maq route.',
+      'Name your route above, then add each stop as you go. Saved routes will show up here for printing later.',
     ]));
     return;
   }
 
-  const list = el('div', { class: 'rec-list' });
   const sorted = [...routes].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const list = el('div', { class: 'rec-list' });
+  list.appendChild(el('div', { class: 'page-head' }, [
+    el('h2', { class: 'page-title' }, ['Saved Routes (' + sorted.length + ')']),
+    el('button', { class: 'btn ghost small', onclick: exportAll }, ['Backup JSON']),
+  ]));
   for (const r of sorted) {
     const withNotes = r.stops.filter((s) => s.notes && s.notes.trim()).length;
     list.appendChild(el('div', { class: 'card rec' }, [
@@ -184,23 +132,17 @@ function renderHome() {
   view.appendChild(list);
 }
 
-function createRoute(name) {
-  if (name && routes.some((r) => r.name.toLowerCase() === name.toLowerCase())) { toast('A route with that name already exists.'); return; }
+function createRoute() {
+  const input = document.getElementById('newRouteName');
+  const name = input ? input.value.trim() : '';
+  if (!name) { toast('Enter a route name first.'); return; }
+  if (routes.some((r) => r.name.toLowerCase() === name.toLowerCase())) { toast('A route with that name already exists.'); return; }
   const r = newRoute(name);
   routes.push(r);
   persist();
   currentRouteId = r.id;
   renderRoute();
-}
-
-function addMaqTemplate() {
-  if (routes.some((r) => r.name === 'Maq Route')) { toast('Maq Route already loaded.'); return; }
-  const r = maqRoute();
-  routes.push(r);
-  persist();
-  currentRouteId = r.id;
-  renderRoute();
-  toast('Maq Route loaded (' + r.stops.length + ' stops).');
+  toast('Route created \u2014 add your stops.');
 }
 
 function deleteRoute(id) {
@@ -224,7 +166,6 @@ function exportAll() {
 
 function openRoute(id) {
   currentRouteId = id;
-  expandedStop = null;
   renderRoute();
 }
 
@@ -271,56 +212,52 @@ function renderRoute() {
 }
 
 function stopCard(r, stop, idx) {
-  const open = expandedStop === stop;
-  const body = [];
-  body.push(el('div', {
-    class: 'stop-head',
-    onclick: () => { expandedStop = open ? null : stop; renderRoute(); },
-  }, [
-    el('span', { class: 'stop-num' }, [String(idx + 1)]),
-    el('span', { class: 'stop-name' }, [stop.name || '(unnamed stop)']),
-    stop.cod ? el('span', { class: 'cod' }, ['C.O.D.']) : null,
-    el('span', { class: 'chev' }, [open ? '\u25B2' : '\u25BC']),
-  ]));
-
-  if (open) {
-    const controls = el('div', { class: 'stop-controls' }, [
-      el('button', { class: 'btn ghost small', disabled: idx === 0, onclick: () => moveStop(r, idx, -1) }, ['\u2191']),
-      el('button', { class: 'btn ghost small', disabled: idx === r.stops.length - 1, onclick: () => moveStop(r, idx, 1) }, ['\u2193']),
-      el('button', { class: 'btn ghost small danger', onclick: () => deleteStop(r, idx) }, ['Delete stop']),
-    ]);
-    body.push(el('div', { class: 'stop-body' }, [
+  const body = [
+    el('div', { class: 'stop-head' }, [
+      el('span', { class: 'stop-num' }, [String(idx + 1)]),
+      el('span', { class: 'stop-name' }, [stop.name || '(new stop)']),
+      stop.cod ? el('span', { class: 'cod' }, ['C.O.D.']) : null,
+    ]),
+    el('div', { class: 'stop-body' }, [
       el('div', { class: 'field' }, [
         el('span', { class: 'field-label' }, ['Stop Name']),
-        el('input', { type: 'text', value: stop.name, onchange: (e) => { stop.name = e.target.value; persist(); } }),
-      ]),
-      el('div', { class: 'field' }, [
-        el('span', { class: 'field-label' }, ['Instructions']),
-        el('textarea', { class: 'instr', rows: 2, value: stop.instructions, onchange: (e) => { stop.instructions = e.target.value; persist(); } }),
-      ]),
-      el('label', { class: 'cod-toggle', onclick: (e) => e.stopPropagation() }, [
-        el('input', { type: 'checkbox', checked: stop.cod, onchange: (e) => { stop.cod = e.target.checked; persist(); renderRoute(); } }),
-        el('span', {}, ['This stop is C.O.D.']),
+        el('input', { type: 'text', placeholder: 'e.g. OROURKE MOTORS', value: stop.name, oninput: (e) => { stop.name = e.target.value; persist(); updateStopLabel(stop, e.target); } }),
       ]),
       el('div', { class: 'field' }, [
         el('span', { class: 'field-label' }, ['Ride-along Notes (this run)']),
         el('textarea', {
-          class: 'notes', rows: 3,
+          class: 'notes', rows: 2,
           placeholder: 'Type notes here…',
           value: stop.notes,
           oninput: (e) => { stop.notes = e.target.value; persist(); updateProgress(r); },
         }),
       ]),
-      controls,
-    ]));
-  }
+      el('div', { class: 'field extra' }, [
+        el('span', { class: 'field-label' }, ['Instructions (optional)']),
+        el('textarea', { class: 'instr', rows: 1, placeholder: 'Drop-off instructions, contact, etc.', value: stop.instructions, oninput: (e) => { stop.instructions = e.target.value; persist(); } }),
+      ]),
+      el('label', { class: 'cod-toggle' }, [
+        el('input', { type: 'checkbox', checked: stop.cod, onchange: (e) => { stop.cod = e.target.checked; persist(); } }),
+        el('span', {}, ['C.O.D. (cash on delivery)']),
+      ]),
+      el('div', { class: 'stop-controls' }, [
+        el('button', { class: 'btn ghost small', disabled: idx === 0, onclick: () => moveStop(r, idx, -1) }, ['\u2191']),
+        el('button', { class: 'btn ghost small', disabled: idx === r.stops.length - 1, onclick: () => moveStop(r, idx, 1) }, ['\u2193']),
+        el('button', { class: 'btn ghost small danger', onclick: () => deleteStop(r, idx) }, ['Delete stop']),
+      ]),
+    ]),
+  ];
   return el('div', { class: 'card stop-card' }, body);
+}
+
+function updateStopLabel(stop, input) {
+  const name = input.closest('.stop-card').querySelector('.stop-name');
+  if (name) name.textContent = stop.name || '(new stop)';
 }
 
 function addStop(r) {
   r.stops.push(makeStop());
   persist();
-  expandedStop = r.stops[r.stops.length - 1];
   renderRoute();
 }
 
@@ -409,11 +346,6 @@ function registerSW() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-}
-
-if (!routes.length) {
-  routes.push(maqRoute());
-  persist();
 }
 
 renderHome();
