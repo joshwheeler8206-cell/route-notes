@@ -1,4 +1,4 @@
-const CACHE = 'route-notes-v6';
+const CACHE = 'route-notes-v7';
 const ASSETS = [
   './',
   './index.html',
