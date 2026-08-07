@@ -1,4 +1,5 @@
 # Route Notes
+<p align="center"><img src="icons/logo-tile.png" alt="U.S. AutoForce" width="340"></p>
 U.S. AutoForce delivery route notes. Per-stop notes, printable as PDF via GitHub Pages.
 
 ## Install
