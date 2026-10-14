@@ -58,10 +58,12 @@ function persist() {
   const snapshot = JSON.parse(JSON.stringify(routes));
   if (canIdb) {
     _writeQueue = _writeQueue.then(() => idbSet(STORE_KEY, snapshot)).catch(() => {});
+    scheduleAutoBackup();
     return _writeQueue;
   }
   try { localStorage.setItem(STORE_KEY, JSON.stringify(snapshot)); }
   catch (e) { toast('Storage is full. Export and delete old routes.'); }
+  scheduleAutoBackup();
   return Promise.resolve();
 }
 
@@ -151,6 +153,7 @@ function renderHome() {
     el('button', { class: 'btn primary big', onclick: createRoute }, ['Start Route \u2192']),
   ]);
   view.appendChild(newCard);
+  view.appendChild(autoBackupToggleUI());
 
   if (!routes.length) {
     view.appendChild(el('div', { class: 'empty' }, [
@@ -214,6 +217,42 @@ function exportRoute(r) {
 
 function exportAll() {
   download('route-notes-all-' + todayISO() + '.json', JSON.stringify(routes, null, 2));
+}
+
+/* ---------- Auto-backup ----------
+   Keeps an off-device, recoverable copy: a timestamped JSON file drops into
+   Downloads a few seconds after you stop entering data. Debounced 15s,
+   throttled to one per 5 min, capped per session. Toggle on the home screen. */
+const AUTOBACKUP_KEY = 'autobk_route';
+let _abEnabled = (localStorage.getItem(AUTOBACKUP_KEY) !== 'off');
+let _abTimer = null, _abLast = 0, _abCount = 0, _abPending = false;
+const AB_DELAY = 15000, AB_MIN_GAP = 300000, AB_MAX = 6;
+
+function autoBackupEnabled() { return _abEnabled; }
+function setAutoBackup(on) { _abEnabled = !!on; try { localStorage.setItem(AUTOBACKUP_KEY, on ? 'on' : 'off'); } catch (e) {} }
+function scheduleAutoBackup() { if (!_abEnabled) return; _abPending = true; clearTimeout(_abTimer); _abTimer = setTimeout(runAutoBackup, AB_DELAY); }
+function runAutoBackup() {
+  if (!_abEnabled || !_abPending) return;
+  const now = Date.now();
+  if (_abCount >= AB_MAX) { _abPending = false; return; }
+  if (_abLast && now - _abLast < AB_MIN_GAP) { _abTimer = setTimeout(runAutoBackup, AB_MIN_GAP - (now - _abLast)); return; }
+  _abPending = false; _abLast = now; _abCount++;
+  try {
+    if (!routes.length) return;
+    const ts = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '');
+    download('route-notes-auto-' + ts + '.json', JSON.stringify(routes, null, 2));
+  } catch (e) {}
+}
+function autoBackupToggleUI() {
+  const ck = el('input', { type: 'checkbox', class: 'ab-ck', onchange: (e) => { setAutoBackup(e.target.checked); toast(e.target.checked ? 'Auto-backup ON' : 'Auto-backup OFF'); } });
+  ck.checked = _abEnabled;
+  return el('label', { class: 'ab-toggle' }, [
+    ck,
+    el('span', { class: 'ab-txt' }, [
+      el('span', { class: 'ab-title' }, ['Auto-backup to Downloads']),
+      el('span', { class: 'sub' }, ['Saves a timestamped backup file to Downloads a few seconds after you stop entering data (up to 6 per session).']),
+    ]),
+  ]);
 }
 
 /* ============================== Screen: Route editor ============================== */

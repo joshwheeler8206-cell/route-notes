@@ -222,3 +222,16 @@ textarea.notes { resize: vertical; background: #fffbeb; border-color: #fcd34d; }
   .stop-num { background: #052e16; }
   textarea.notes { background: #451a03; border-color: #92400e; }
 }
+
+/* ---------- Auto-backup toggle ---------- */
+.ab-toggle {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin: 4px 0 12px; padding: 10px 12px;
+  border: 1.5px solid var(--line, #e3e6ef); border-radius: 10px;
+  background: rgba(21, 128, 61, .06);
+  cursor: pointer;
+}
+.ab-ck { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+.ab-txt { display: flex; flex-direction: column; gap: 2px; }
+.ab-title { font-size: 13px; font-weight: 700; }
+.ab-txt .sub { font-size: 12px; opacity: .75; margin: 0; }
